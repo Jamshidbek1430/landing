@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click Analytics</title>
+<script src="data.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f1117;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+  header{background:#1a1d2e;border-bottom:1px solid #2d3748;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  header h1{font-size:18px;font-weight:700;color:#a78bfa;letter-spacing:.5px}
+  .live{display:flex;align-items:center;gap:6px;font-size:12px;color:#718096}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:#48bb78;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .last-update{font-size:11px;color:#4a5568}
+  .refresh-btn{background:#2d3748;border:none;color:#a0aec0;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+  .refresh-btn:hover{background:#3d4758;color:#e2e8f0}
+
+  .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:20px 24px}
+  .stat-card{background:#1a1d2e;border:1px solid #2d3748;border-radius:10px;padding:16px}
+  .stat-card .label{font-size:11px;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .stat-card .value{font-size:26px;font-weight:700;color:#e2e8f0}
+  .stat-card .sub{font-size:12px;color:#a0aec0;margin-top:4px}
+
+  .page-tabs{display:flex;gap:8px;padding:0 24px 16px;flex-wrap:wrap}
+  .tab{padding:8px 18px;border-radius:8px;border:1px solid #2d3748;background:#1a1d2e;color:#a0aec0;cursor:pointer;font-size:13px;font-weight:500;transition:.15s}
+  .tab:hover{border-color:#a78bfa;color:#e2e8f0}
+  .tab.active{background:#a78bfa;border-color:#a78bfa;color:#fff}
+  .tab .cnt{display:inline-block;background:rgba(255,255,255,.15);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:6px}
+
+  .content-grid{display:grid;grid-template-columns:1fr 360px;gap:16px;padding:0 24px 24px}
+
+  .heatmap-wrap{background:#1a1d2e;border:1px solid #2d3748;border-radius:10px;padding:16px}
+  .heatmap-wrap h2{font-size:13px;font-weight:600;color:#a0aec0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+  .canvas-wrap{display:flex;justify-content:center}
+  canvas#heatmap{border-radius:6px;display:block;max-width:100%}
+  .heatmap-legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px;color:#718096}
+  .legend-bar{height:8px;width:120px;border-radius:4px;background:linear-gradient(to right,rgba(59,130,246,.4),rgba(234,179,8,.6),rgba(239,68,68,.9))}
+
+  .right-panel{display:flex;flex-direction:column;gap:16px}
+
+  .card-box{background:#1a1d2e;border:1px solid #2d3748;border-radius:10px;padding:16px}
+  .card-box h2{font-size:13px;font-weight:600;color:#a0aec0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+
+  /* Section breakdown */
+  .section-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2d3748}
+  .section-row:last-child{border-bottom:none}
+  .section-name{font-size:12px;color:#cbd5e0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .section-bar-wrap{width:80px;background:#2d3748;border-radius:4px;height:6px;flex-shrink:0}
+  .section-bar{height:6px;border-radius:4px;background:#a78bfa}
+  .section-pct{font-size:12px;color:#a78bfa;font-weight:700;width:36px;text-align:right;flex-shrink:0}
+
+  /* Page visit/click ratio */
+  .ratio-wrap{display:flex;gap:12px;margin-bottom:12px}
+  .ratio-item{flex:1;background:#0f1117;border-radius:8px;padding:10px;text-align:center}
+  .ratio-item .rv{font-size:22px;font-weight:700;color:#e2e8f0}
+  .ratio-item .rl{font-size:11px;color:#718096;text-transform:uppercase;margin-top:2px}
+
+  /* Elements */
+  .el-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #2d3748}
+  .el-row:last-child{border-bottom:none}
+  .el-rank{font-size:12px;color:#4a5568;width:18px;text-align:right;flex-shrink:0}
+  .el-info{flex:1;min-width:0}
+  .el-tag{font-size:10px;background:#2d3748;color:#a78bfa;padding:1px 6px;border-radius:4px;font-family:monospace}
+  .el-text{font-size:12px;color:#cbd5e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;margin-top:2px}
+  .el-bar-wrap{width:50px;background:#2d3748;border-radius:4px;height:5px;flex-shrink:0}
+  .el-bar{height:5px;border-radius:4px;background:#a78bfa}
+  .el-count{font-size:12px;color:#a78bfa;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+
+  /* Feed */
+  .feed-item{padding:8px 0;border-bottom:1px solid #2d3748;font-size:12px;display:flex;gap:8px;align-items:flex-start}
+  .feed-item:last-child{border-bottom:none}
+  .feed-time{color:#4a5568;white-space:nowrap;flex-shrink:0;font-size:11px;margin-top:1px}
+  .feed-info{color:#a0aec0;min-width:0}
+  .feed-page{color:#a78bfa;font-size:10px;font-weight:600;text-transform:uppercase}
+  .feed-type{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:600}
+  .feed-type.view{background:#1a365d;color:#63b3ed}
+  .feed-type.click{background:#322659;color:#b794f4}
+
+  .empty{text-align:center;color:#4a5568;font-size:13px;padding:24px 0}
+  .error-banner{background:#2d1a1a;border:1px solid #742a2a;border-radius:8px;padding:12px 16px;margin:0 24px 16px;font-size:13px;color:#fc8181}
+
+  @media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)};.content-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#9673; Click Analytics</h1>
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div class="live"><span class="live-dot"></span>Live</div>
+    <span class="last-update" id="lastUpdate">Loading…</span>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</header>
+
+<div id="errorBanner" style="display:none" class="error-banner"></div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="label">Total Pageviews</div>
+    <div class="value" id="statViews">—</div>
+    <div class="sub">all pages</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Total Clicks</div>
+    <div class="value" id="statClicks">—</div>
+    <div class="sub" id="statCtr">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Unique Visitors</div>
+    <div class="value" id="statVisitors">—</div>
+    <div class="sub">sessions</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Today</div>
+    <div class="value" id="statToday">—</div>
+    <div class="sub" id="statTodaySub">views today</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Hottest Page</div>
+    <div class="value" style="font-size:15px;padding-top:4px" id="statHot">—</div>
+    <div class="sub" id="statHotSub"></div>
+  </div>
+</div>
+
+<div class="page-tabs" id="pageTabs"></div>
+
+<div class="content-grid">
+  <div class="heatmap-wrap">
+    <h2>Click Heatmap — <span id="heatmapPageLabel">select a page</span></h2>
+    <div class="canvas-wrap">
+      <canvas id="heatmap" width="390" height="760"></canvas>
+    </div>
+    <div class="heatmap-legend">
+      <span>Low</span>
+      <div class="legend-bar"></div>
+      <span>High</span>
+      <span style="margin-left:auto;color:#4a5568" id="heatmapCount"></span>
+    </div>
+  </div>
+
+  <div class="right-panel">
+
+    <div class="card-box">
+      <h2>Views vs Clicks — <span id="ratioPageLabel" style="color:#a78bfa;font-size:12px"></span></h2>
+      <div class="ratio-wrap">
+        <div class="ratio-item">
+          <div class="rv" id="ratioViews">—</div>
+          <div class="rl">Views</div>
+        </div>
+        <div class="ratio-item">
+          <div class="rv" id="ratioClicks">—</div>
+          <div class="rl">Clicks</div>
+        </div>
+        <div class="ratio-item">
+          <div class="rv" id="ratioCtr">—</div>
+          <div class="rl">CTR</div>
+        </div>
+      </div>
+      <h2 style="margin-top:4px">Section Breakdown</h2>
+      <div id="sectionList"><div class="empty">No data</div></div>
+    </div>
+
+    <div class="card-box">
+      <h2>Top Clicked Elements</h2>
+      <div id="elementsList"><div class="empty">No data yet</div></div>
+    </div>
+
+    <div class="card-box">
+      <h2>Recent Activity</h2>
+      <div id="recentFeed"><div class="empty">No activity yet</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var PAGES = [
+  { id: 'gold',  label: 'Gold' },
+  { id: 'teal',  label: 'Teal' },
+  { id: 'red',   label: 'Red' },
+  { id: 'white', label: 'White' }
+];
+
+var allData = [];
+var activePage = 'gold';
+
+async function loadData() {
+  document.getElementById('errorBanner').style.display = 'none';
+  try {
+    var data = await DB.fetchAll();
+    allData = data;
+    render();
+    document.getElementById('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  } catch (e) {
+    var b = document.getElementById('errorBanner');
+    b.style.display = 'block';
+    b.textContent = 'Supabase error: ' + e.message + ' — Run the SQL setup first.';
+  }
+}
+
+function byPage(data, pageId) {
+  return data.filter(function(r){ return r.page === pageId; });
+}
+
+function views(data) { return data.filter(function(r){ return r.event_type === 'pageview'; }); }
+function clicks(data) { return data.filter(function(r){ return r.event_type === 'click'; }); }
+
+function render() {
+  var data = allData;
+
+  // Global stats
+  var totalViews  = views(data).length;
+  var totalClicks = clicks(data).length;
+  var sessions = {};
+  data.forEach(function(r){ if(r.session_id) sessions[r.session_id] = true; });
+  var ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) + '%' : '—';
+
+  document.getElementById('statViews').textContent   = totalViews.toLocaleString();
+  document.getElementById('statClicks').textContent  = totalClicks.toLocaleString();
+  document.getElementById('statCtr').textContent     = 'CTR: ' + ctr;
+  document.getElementById('statVisitors').textContent = Object.keys(sessions).length.toLocaleString();
+
+  var today = new Date().toISOString().slice(0, 10);
+  var todayViews = views(data).filter(function(r){ return r.created_at && r.created_at.slice(0,10) === today; });
+  document.getElementById('statToday').textContent   = todayViews.length.toLocaleString();
+  document.getElementById('statTodaySub').textContent = todayViews.length + ' views today';
+
+  var hotPage = PAGES.reduce(function(best, p) {
+    var cnt = clicks(byPage(data, p.id)).length;
+    var bestCnt = clicks(byPage(data, best.id)).length;
+    return cnt > bestCnt ? p : best;
+  }, PAGES[0]);
+  document.getElementById('statHot').textContent   = hotPage.label;
+  document.getElementById('statHotSub').textContent = clicks(byPage(data, hotPage.id)).length + ' clicks';
+
+  // Tabs
+  var tabsEl = document.getElementById('pageTabs');
+  tabsEl.innerHTML = '';
+  PAGES.forEach(function(p) {
+    var btn = document.createElement('button');
+    btn.className = 'tab' + (p.id === activePage ? ' active' : '');
+    var cnt = clicks(byPage(data, p.id)).length;
+    btn.innerHTML = p.label + '<span class="cnt">' + cnt + '</span>';
+    btn.addEventListener('click', function() { activePage = p.id; render(); });
+    tabsEl.appendChild(btn);
+  });
+
+  var pd = byPage(data, activePage);
+  var pClicks = clicks(pd);
+  var pViews  = views(pd);
+  var activeLabel = (PAGES.find(function(p){ return p.id === activePage; }) || {}).label || activePage;
+
+  document.getElementById('heatmapPageLabel').textContent = activeLabel;
+  document.getElementById('ratioPageLabel').textContent   = activeLabel;
+
+  // Views/clicks/ctr for this page
+  var pageCtr = pViews.length > 0 ? ((pClicks.length / pViews.length) * 100).toFixed(1) + '%' : '—';
+  document.getElementById('ratioViews').textContent  = pViews.length;
+  document.getElementById('ratioClicks').textContent = pClicks.length;
+  document.getElementById('ratioCtr').textContent    = pageCtr;
+
+  drawHeatmap(pClicks);
+  renderSections(pClicks);
+  renderElements(pClicks);
+  renderFeed(data.slice(0, 30));
+}
+
+function drawHeatmap(points) {
+  var canvas = document.getElementById('heatmap');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  ctx.fillStyle = '#1e2130';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx <= W; gx += W/6) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+  for (var gy = 0; gy <= H; gy += H/10) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+
+  // Section labels on canvas — 2 sections split at 50%
+  var isV4 = activePage === 'white';
+  var sectionLines = [
+    { y: H * 0.5, label: isV4 ? '— Jonli Darsda Siz' : '— CTA (Tugma)' }
+  ];
+  ctx.strokeStyle = 'rgba(167,139,250,0.2)';
+  ctx.setLineDash([4,4]);
+  ctx.lineWidth = 1;
+  sectionLines.forEach(function(s) {
+    ctx.beginPath(); ctx.moveTo(0, s.y); ctx.lineTo(W, s.y); ctx.stroke();
+    ctx.fillStyle = 'rgba(167,139,250,0.4)';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(s.label, 6, s.y - 4);
+  });
+  ctx.setLineDash([]);
+
+  document.getElementById('heatmapCount').textContent = points.length + ' clicks';
+
+  if (points.length === 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No clicks recorded yet', W/2, H/2);
+    return;
+  }
+
+  var radius = Math.max(20, Math.min(50, Math.round(W / 8)));
+  points.forEach(function(pt) {
+    if (pt.x_percent == null) return;
+    var x = (pt.x_percent / 100) * W;
+    var y = (pt.y_percent / 100) * H;
+    var g = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    g.addColorStop(0,   'rgba(239,68,68,0.22)');
+    g.addColorStop(0.4, 'rgba(234,179,8,0.12)');
+    g.addColorStop(1,   'rgba(59,130,246,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+  });
+  points.forEach(function(pt) {
+    if (pt.x_percent == null) return;
+    var x = (pt.x_percent / 100) * W;
+    var y = (pt.y_percent / 100) * H;
+    ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fill();
+  });
+}
+
+function renderSections(pageClicks) {
+  var el = document.getElementById('sectionList');
+  if (pageClicks.length === 0) { el.innerHTML = '<div class="empty">No clicks yet</div>'; return; }
+
+  var counts = {};
+  pageClicks.forEach(function(r) {
+    var s = r.section || 'Unknown';
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  var sorted = Object.keys(counts).map(function(k){ return { name: k, count: counts[k] }; })
+    .sort(function(a,b){ return b.count - a.count; });
+  var max = sorted[0] ? sorted[0].count : 1;
+  var total = pageClicks.length;
+
+  el.innerHTML = sorted.map(function(s) {
+    var pct = Math.round((s.count / max) * 100);
+    var share = Math.round((s.count / total) * 100);
+    return '<div class="section-row">' +
+      '<div class="section-name">' + escHtml(s.name) + '</div>' +
+      '<div class="section-bar-wrap"><div class="section-bar" style="width:' + pct + '%"></div></div>' +
+      '<div class="section-pct">' + share + '%</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderElements(pageClicks) {
+  var el = document.getElementById('elementsList');
+  if (pageClicks.length === 0) { el.innerHTML = '<div class="empty">No clicks on this page yet</div>'; return; }
+
+  var groups = {};
+  pageClicks.forEach(function(r) {
+    var key = (r.element_tag || '?') + '|' + (r.element_text || r.element_class || r.element_id || '—');
+    if (!groups[key]) groups[key] = { tag: r.element_tag, text: r.element_text || r.element_class || r.element_id || '—', count: 0 };
+    groups[key].count++;
+  });
+
+  var sorted = Object.values(groups).sort(function(a,b){ return b.count - a.count; }).slice(0, 7);
+  var max = sorted[0] ? sorted[0].count : 1;
+
+  el.innerHTML = sorted.map(function(g, i) {
+    var pct = Math.round((g.count / max) * 100);
+    return '<div class="el-row">' +
+      '<div class="el-rank">' + (i+1) + '</div>' +
+      '<div class="el-info">' +
+        '<span class="el-tag">&lt;' + escHtml(g.tag || '?') + '&gt;</span>' +
+        '<div class="el-text" title="' + escHtml(g.text) + '">' + escHtml(g.text) + '</div>' +
+      '</div>' +
+      '<div class="el-bar-wrap"><div class="el-bar" style="width:' + pct + '%"></div></div>' +
+      '<div class="el-count">' + g.count + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderFeed(recent) {
+  var el = document.getElementById('recentFeed');
+  if (recent.length === 0) { el.innerHTML = '<div class="empty">No activity yet</div>'; return; }
+  el.innerHTML = recent.slice(0, 20).map(function(r) {
+    var t = r.created_at ? new Date(r.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+    var pageLabel = (PAGES.find(function(p){ return p.id === r.page; }) || {}).label || r.page;
+    var isView = r.event_type === 'pageview';
+    var info = isView ? 'visited page' : (r.element_text || r.element_class || r.section || 'click');
+    var typeTag = isView
+      ? '<span class="feed-type view">view</span>'
+      : '<span class="feed-type click">click</span>';
+    return '<div class="feed-item">' +
+      '<div class="feed-time">' + t + '</div>' +
+      '<div class="feed-info">' + typeTag + ' <span class="feed-page">' + pageLabel + '</span> — ' + escHtml(info.slice(0,50)) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadData();
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
