@@ -20,13 +20,13 @@ var DB = (function () {
   }
 
   function insertPhone(payload) {
-    return fetch(URL + '/rest/v1/phone_submissions', {
+    return fetch(URL + '/rest/v1/phone_submissions?on_conflict=phone_full', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': KEY,
         'Authorization': 'Bearer ' + KEY,
-        'Prefer': 'return=minimal'
+        'Prefer': 'return=minimal,resolution=ignore-duplicates'
       },
       body: JSON.stringify(payload),
       keepalive: true
