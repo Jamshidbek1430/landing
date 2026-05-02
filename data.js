@@ -19,20 +19,6 @@ var DB = (function () {
     } catch (e) {}
   }
 
-  function insertPhone(payload) {
-    return fetch(URL + '/rest/v1/phone_submissions?on_conflict=phone_full', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': KEY,
-        'Authorization': 'Bearer ' + KEY,
-        'Prefer': 'return=minimal,resolution=ignore-duplicates'
-      },
-      body: JSON.stringify(payload),
-      keepalive: true
-    });
-  }
-
   function fetchPage(offset) {
     return fetch(URL + '/rest/v1/click_events?select=*&order=created_at.asc', {
       headers: {
@@ -79,56 +65,5 @@ var DB = (function () {
     });
   }
 
-  function fetchPhonePage(offset) {
-    return fetch(URL + '/rest/v1/phone_submissions?select=*&order=created_at.desc', {
-      headers: {
-        'apikey': KEY,
-        'Authorization': 'Bearer ' + KEY,
-        'Prefer': 'count=exact',
-        'Range-Unit': 'items',
-        'Range': offset + '-' + (offset + PAGE_SIZE - 1)
-      }
-    }).then(function (res) {
-      if (!res.ok) {
-        return res.text().then(function (t) {
-          throw new Error('HTTP ' + res.status + ': ' + t);
-        });
-      }
-      var cr = res.headers.get('Content-Range');
-      var total = cr ? parseInt(cr.split('/')[1], 10) : null;
-      return res.json().then(function (rows) {
-        return { rows: rows, total: total };
-      });
-    });
-  }
-
-  function fetchAllPhones() {
-    return fetchPhonePage(0).then(function (first) {
-      var allRows = first.rows;
-      var total = first.total;
-
-      if (!total || isNaN(total) || allRows.length >= total) {
-        return allRows;
-      }
-
-      var promises = [];
-      for (var offset = PAGE_SIZE; offset < total; offset += PAGE_SIZE) {
-        promises.push(fetchPhonePage(offset));
-      }
-
-      return Promise.all(promises).then(function (pages) {
-        pages.forEach(function (page) {
-          allRows = allRows.concat(page.rows);
-        });
-        return allRows;
-      });
-    });
-  }
-
-  return {
-    insert: insert,
-    insertPhone: insertPhone,
-    fetchAll: fetchAll,
-    fetchAllPhones: fetchAllPhones
-  };
+  return { insert: insert, fetchAll: fetchAll };
 })();
