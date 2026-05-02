@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffffff">
+<title>Маълумотларингизни киритинг</title>
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1732208414120212');
+fbq('track', 'PageView');
+</script>
+<script src="data.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fff;color:#111;padding:36px 22px 24px;display:flex;justify-content:center;min-height:100vh}
+  .wrap{width:100%;max-width:430px}
+  h1{font-size:23px;font-weight:800;text-align:center;line-height:1.25;margin:8px 0 30px;letter-spacing:-.2px}
+  label{display:block;font-size:14.5px;color:#222;margin-bottom:9px;font-weight:500}
+  .input-row{display:flex;align-items:center;border:2px solid #d1d5db;border-radius:11px;background:#fff;height:56px;transition:border-color .15s}
+  .input-row.focus{border-color:#3b82f6}
+  .input-row.invalid{border-color:#dc2626}
+  .country-pick{display:flex;align-items:center;gap:5px;padding:0 8px 0 12px;border:0;background:transparent;cursor:pointer;height:100%;font-family:inherit}
+  .country-pick .flag{font-size:24px;line-height:1}
+  .country-pick .arrow{font-size:9px;color:#666;margin-left:1px}
+  .code{color:#3b82f6;font-weight:700;font-size:18px;padding:0 6px 0 4px;letter-spacing:.2px;white-space:nowrap}
+  input[type=tel]{flex:1;border:0;outline:0;font-size:18px;font-weight:500;height:100%;padding:0 10px 0 4px;background:transparent;letter-spacing:.4px;min-width:0;font-family:inherit;color:#111}
+  .error{display:none;color:#dc2626;font-size:14.5px;margin-top:9px;align-items:center;gap:7px;font-weight:500}
+  .error.show{display:flex}
+  .error .x{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:3px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;line-height:1}
+  .btn{margin-top:36px;width:100%;height:62px;border:0;border-radius:14px;background:linear-gradient(180deg,#fbd790 0%,#f6a85c 100%);color:#fff;font-weight:800;font-size:18px;letter-spacing:1.6px;cursor:pointer;text-transform:uppercase;box-shadow:0 6px 18px rgba(246,168,92,.4);font-family:inherit;transition:transform .08s, box-shadow .15s}
+  .btn:active{transform:translateY(1px);box-shadow:0 3px 10px rgba(246,168,92,.35)}
+  .btn:disabled{opacity:.65;cursor:default;transform:none}
+
+  .modal-back{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-end;justify-content:center;padding:0}
+  .modal-back.show{display:flex}
+  .modal{background:#fff;border-radius:16px 16px 0 0;max-width:520px;width:100%;max-height:78vh;overflow-y:auto;animation:slideUp .22s ease-out}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-head{position:sticky;top:0;background:#fff;padding:14px 18px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+  .modal-head h2{font-size:16px;font-weight:700}
+  .modal-close{background:#f3f4f6;border:0;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;color:#374151}
+  .country-row{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:15.5px}
+  .country-row:hover,.country-row:active{background:#f9fafb}
+  .country-row .flag{font-size:24px;line-height:1}
+  .country-row .name{flex:1;color:#111}
+  .country-row .ccode{color:#6b7280;font-weight:500}
+
+  @media(max-width:380px){
+    h1{font-size:20px}
+    .code,input[type=tel]{font-size:17px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Давом этиш учун<br>маълумотларингизни киритинг</h1>
+
+  <label for="phone">Телефон рақамингиз:</label>
+  <div class="input-row" id="inputRow">
+    <button type="button" class="country-pick" id="countryPick" aria-label="Давлатни танлаш">
+      <span class="flag" id="cFlag">🇺🇿</span>
+      <span class="arrow">▾</span>
+    </button>
+    <span class="code" id="cCode">+998</span>
+    <input type="tel" id="phone" inputmode="numeric" autocomplete="tel-national" placeholder="">
+  </div>
+  <div class="error" id="err"><span class="x">✕</span><span>Телефон рақам мос эмас!</span></div>
+
+  <button class="btn" id="submitBtn" type="button">ДАВОМ ЭТИШ</button>
+</div>
+
+<div class="modal-back" id="modal" aria-hidden="true">
+  <div class="modal" role="dialog">
+    <div class="modal-head">
+      <h2>Давлатни танланг</h2>
+      <button class="modal-close" id="modalClose" aria-label="Ёпиш">×</button>
+    </div>
+    <div id="countryList"></div>
+  </div>
+</div>
+
+<script>
+var COUNTRIES = [
+  { code: '+998', flag: '🇺🇿', name: 'Ўзбекистон',          len: [9, 9],   mask: 'uz' },
+  { code: '+7',   flag: '🇷🇺', name: 'Россия / Қазақстан', len: [10, 10], mask: 'ru' },
+  { code: '+996', flag: '🇰🇬', name: 'Кыргызстан',         len: [9, 9],   mask: 'g3' },
+  { code: '+992', flag: '🇹🇯', name: 'Тоҷикистон',         len: [9, 9],   mask: 'g3' },
+  { code: '+993', flag: '🇹🇲', name: 'Türkmenistan',       len: [8, 8],   mask: 'g2' },
+  { code: '+90',  flag: '🇹🇷', name: 'Türkiye',            len: [10, 10], mask: 'ru' },
+  { code: '+1',   flag: '🇺🇸', name: 'USA / Canada',       len: [10, 10], mask: 'ru' },
+  { code: '+44',  flag: '🇬🇧', name: 'United Kingdom',     len: [10, 11], mask: 'free' },
+  { code: '+49',  flag: '🇩🇪', name: 'Deutschland',        len: [10, 12], mask: 'free' },
+  { code: '+971', flag: '🇦🇪', name: 'UAE',                len: [9, 9],   mask: 'g3' },
+  { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia',       len: [9, 9],   mask: 'g3' },
+  { code: '+86',  flag: '🇨🇳', name: 'China',              len: [11, 11], mask: 'free' },
+  { code: '+91',  flag: '🇮🇳', name: 'India',              len: [10, 10], mask: 'free' }
+];
+
+var current = COUNTRIES[0];
+
+// ---------- url params + session ----------
+function params() {
+  var q = {};
+  location.search.slice(1).split('&').forEach(function (p) {
+    if (!p) return;
+    var i = p.indexOf('=');
+    q[decodeURIComponent(i < 0 ? p : p.slice(0, i))] =
+      decodeURIComponent(i < 0 ? '' : p.slice(i + 1));
+  });
+  return q;
+}
+var P = params();
+var FROM_PAGE = P.page || 'unknown';
+
+var sessionId = '';
+try { sessionId = localStorage.getItem('_ct_sid') || ''; } catch (e) {}
+if (!sessionId) {
+  sessionId = 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  }) + '-' + Date.now().toString(36);
+  try { localStorage.setItem('_ct_sid', sessionId); } catch (e) {}
+}
+
+// ---------- helpers ----------
+function digits(s) { return (s || '').replace(/\D/g, ''); }
+
+function formatMasked(d, mask) {
+  if (mask === 'uz') {
+    var p = '';
+    if (d.length > 0) p += d.slice(0, 2);
+    if (d.length > 2) p += ' ' + d.slice(2, 5);
+    if (d.length > 5) p += ' ' + d.slice(5, 7);
+    if (d.length > 7) p += ' ' + d.slice(7, 9);
+    return p;
+  }
+  if (mask === 'ru') {
+    var p = '';
+    if (d.length > 0) p += d.slice(0, 3);
+    if (d.length > 3) p += ' ' + d.slice(3, 6);
+    if (d.length > 6) p += ' ' + d.slice(6, 8);
+    if (d.length > 8) p += ' ' + d.slice(8, 10);
+    return p;
+  }
+  if (mask === 'g3') {
+    var p = '';
+    if (d.length > 0) p += d.slice(0, 3);
+    if (d.length > 3) p += ' ' + d.slice(3, 6);
+    if (d.length > 6) p += ' ' + d.slice(6, 9);
+    return p;
+  }
+  if (mask === 'g2') {
+    var p = '';
+    if (d.length > 0) p += d.slice(0, 2);
+    if (d.length > 2) p += ' ' + d.slice(2, 4);
+    if (d.length > 4) p += ' ' + d.slice(4, 6);
+    if (d.length > 6) p += ' ' + d.slice(6, 8);
+    return p;
+  }
+  return d;
+}
+
+function setCountry(c) {
+  current = c;
+  document.getElementById('cFlag').textContent = c.flag;
+  document.getElementById('cCode').textContent = c.code;
+  // Re-format current input under new mask
+  var inp = document.getElementById('phone');
+  var d = digits(inp.value).slice(0, c.len[1]);
+  inp.value = formatMasked(d, c.mask);
+  validate(true);
+  inp.focus();
+}
+
+function validate(silent) {
+  var d = digits(document.getElementById('phone').value);
+  var ok = d.length >= current.len[0] && d.length <= current.len[1];
+  var err = document.getElementById('err');
+  var row = document.getElementById('inputRow');
+  if (!ok && d.length > 0 && !silent) {
+    err.classList.add('show');
+    row.classList.add('invalid');
+  } else {
+    err.classList.remove('show');
+    row.classList.remove('invalid');
+  }
+  return ok;
+}
+
+// ---------- input handlers ----------
+var inp = document.getElementById('phone');
+inp.addEventListener('input', function () {
+  var d = digits(inp.value).slice(0, current.len[1]);
+  inp.value = formatMasked(d, current.mask);
+  validate(true);
+});
+inp.addEventListener('blur', function () { validate(false); });
+inp.addEventListener('focus', function () {
+  document.getElementById('inputRow').classList.add('focus');
+});
+inp.addEventListener('blur', function () {
+  document.getElementById('inputRow').classList.remove('focus');
+});
+
+// ---------- country modal ----------
+function buildCountryList() {
+  var list = document.getElementById('countryList');
+  list.innerHTML = COUNTRIES.map(function (c) {
+    return '<div class="country-row" data-code="' + c.code + '">' +
+      '<span class="flag">' + c.flag + '</span>' +
+      '<span class="name">' + c.name + '</span>' +
+      '<span class="ccode">' + c.code + '</span></div>';
+  }).join('');
+  Array.prototype.forEach.call(list.querySelectorAll('.country-row'), function (row) {
+    row.addEventListener('click', function () {
+      var c = COUNTRIES.find(function (x) { return x.code === row.getAttribute('data-code'); });
+      if (c) setCountry(c);
+      closeModal();
+    });
+  });
+}
+function openModal() {
+  buildCountryList();
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+document.getElementById('countryPick').addEventListener('click', openModal);
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modal').addEventListener('click', function (e) {
+  if (e.target.id === 'modal') closeModal();
+});
+
+// ---------- submit ----------
+var TG = 'https://t.me/+VtnxZjLMjMg4OTYy';
+function goTelegram() {
+  if (/Android/i.test(navigator.userAgent)) {
+    window.location = 'intent://join?invite=VtnxZjLMjMg4OTYy#Intent;scheme=tg;package=org.telegram.messenger;S.browser_fallback_url=' + encodeURIComponent(TG) + ';end';
+  } else {
+    window.location.href = TG;
+  }
+}
+
+document.getElementById('submitBtn').addEventListener('click', function () {
+  var d = digits(document.getElementById('phone').value);
+  if (!validate(false) || !d) {
+    document.getElementById('err').classList.add('show');
+    document.getElementById('inputRow').classList.add('invalid');
+    document.getElementById('phone').focus();
+    return;
+  }
+  var btn = this;
+  btn.disabled = true;
+  var originalText = btn.textContent;
+  btn.textContent = 'ЮБОРИЛМОҚДА…';
+
+  var phoneFull = current.code + d;
+
+  // Save phone submission
+  DB.insertPhone({
+    page: FROM_PAGE,
+    session_id: sessionId,
+    country_code: current.code,
+    phone: d,
+    phone_full: phoneFull,
+    user_agent: (navigator.userAgent || '').slice(0, 250)
+  }).catch(function () {});
+
+  // Log a funnel event in click_events for analytics consistency
+  DB.insert({
+    page: FROM_PAGE,
+    event_type: 'phone_submit',
+    x_percent: null, y_percent: null, x_px: null, y_px: null,
+    element_tag: 'button',
+    element_text: 'DAVOM ETISH (phone)',
+    element_id: 'submitBtn',
+    element_class: null,
+    section: 'Phone Capture',
+    session_id: sessionId,
+    screen_width: window.screen.width,
+    screen_height: window.screen.height
+  });
+
+  if (typeof fbq === 'function') fbq('track', 'Lead');
+
+  // Small delay so the request gets out reliably (keepalive helps too)
+  setTimeout(function () {
+    goTelegram();
+    setTimeout(function () {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }, 2000);
+  }, 380);
+});
+
+// init
+setCountry(current);
+</script>
+</body>
+</html>
