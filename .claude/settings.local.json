@@ -5,7 +5,27 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(ssh-add *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(awk '{print NR\": \"length\\($0\\)\" chars\"}' /home/hobbit/landingbel/teal.html)",
+      "Bash(awk NR==109 {print substr\\($0, 1, 200\\); print \"---\"; print substr\\($0, length\\($0\\)-200, 200\\)} *)",
+      "Bash(awk '{print NR\": \"length\\($0\\)\" chars\"}' /home/hobbit/landingbel/gold.html)",
+      "Bash(sort -t: -k2 -nr)",
+      "Bash(awk '{print NR\": \"length\\($0\\)\" chars\"}' /home/hobbit/landingbel/red.html)",
+      "Bash(awk '{print NR\": \"length\\($0\\)\" chars\"}' /home/hobbit/landingbel/white.html)",
+      "Bash(awk 'NR==97 {print substr\\($0, 1, 80\\)}' /home/hobbit/landingbel/white.html)",
+      "Bash(awk 'NR==97' /home/hobbit/landingbel/white.html)",
+      "Bash(awk 'NR==109' /home/hobbit/landingbel/teal.html)",
+      "Bash(awk 'NR==109' teal.html)",
+      "Bash(cwebp -version)",
+      "Bash(magick sticker.webp -strip -quality 80 -define webp:method=6 sticker_q80.webp)",
+      "Bash(magick sticker.webp -strip -quality 70 -define webp:method=6 sticker_q70.webp)",
+      "Bash(magick sticker.webp -strip -quality 85 -define webp:method=6 sticker_q85.webp)",
+      "Bash(magick sticker.webp -format \"%wx%h\\\\n\" info:)",
+      "Bash(magick sticker_q85.webp -format \"%wx%h\\\\n\" info:)",
+      "Bash(mv -f sticker_q85.webp sticker.webp)",
+      "Bash(rm -f sticker_q70.webp sticker_q80.webp)",
+      "Bash(chmod 644 sticker.webp)",
+      "Bash(python3 /tmp/patch_landings.py)"
     ]
   }
 }
