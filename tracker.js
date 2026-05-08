@@ -39,24 +39,24 @@
       .replace(/\s+/g, ' ').trim().slice(0, 80);
   }
 
-  // Track page visit immediately so a fast tap before `load` still records a pageview.
-  // Why: window.load waits for fonts/pixel/etc. — a user clicking the overlay in the
-  // first ~200ms would otherwise produce a click row without a matching pageview.
-  send({
-    page: PAGE_ID,
-    event_type: 'pageview',
-    x_percent: null,
-    y_percent: null,
-    x_px: null,
-    y_px: null,
-    element_tag: null,
-    element_text: null,
-    element_id: null,
-    element_class: null,
-    section: null,
-    session_id: sessionId,
-    screen_width: window.screen.width,
-    screen_height: window.screen.height
+  // Track page visit on load
+  window.addEventListener('load', function () {
+    send({
+      page: PAGE_ID,
+      event_type: 'pageview',
+      x_percent: null,
+      y_percent: null,
+      x_px: null,
+      y_px: null,
+      element_tag: null,
+      element_text: null,
+      element_id: null,
+      element_class: null,
+      section: null,
+      session_id: sessionId,
+      screen_width: window.screen.width,
+      screen_height: window.screen.height
+    });
   });
 
   // Track clicks
