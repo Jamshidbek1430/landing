@@ -20,9 +20,16 @@ var DB = (function () {
     });
   }
 
-  // Note: Data retrieval needs to be handled by your backend for production security
-  function fetchAll() { return Promise.resolve([]); }
-  function fetchAllPhones() { return Promise.resolve([]); }
+  // Data retrieval from the new backend
+  function fetchAll() {
+    return fetch(API_URL.replace('/insert', '/clicks'))
+      .then(res => res.json());
+  }
+
+  function fetchAllPhones() {
+    return fetch(API_URL.replace('/insert', '/phones'))
+      .then(res => res.json());
+  }
 
   return {
     insert: insert,
