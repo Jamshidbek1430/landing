@@ -1,4 +1,4 @@
--- SQLite Compatible Schema
+-- SQLite Compatible Schema with Unique Constraint for Phone Numbers
 CREATE TABLE IF NOT EXISTS click_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     page TEXT,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS phone_submissions (
     session_id TEXT,
     country_code TEXT,
     phone TEXT,
-    phone_full TEXT,
+    phone_full TEXT UNIQUE, -- Ensures we don't store the same number twice
     user_agent TEXT
 );
 
