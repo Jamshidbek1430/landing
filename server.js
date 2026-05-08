@@ -4,16 +4,15 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
-// Use PORT from environment, default to 3000
-const PORT = process.env.PORT || 3000;
-// Persistent path for Railway volumes (or default to current directory)
+const PORT = process.env.PORT || 8080;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'landing.db');
 const db = new sqlite3.Database(DB_PATH);
 
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
+// Railway often checks / to see if the service is alive
+app.get('/', (req, res) => res.status(200).send('Service is up'));
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
 app.post('/api/insert', (req, res) => {
@@ -31,4 +30,4 @@ app.post('/api/insert', (req, res) => {
     });
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
