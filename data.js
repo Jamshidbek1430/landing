@@ -1,5 +1,5 @@
 var DB = (function () {
-  var API_URL = 'http://localhost:3000/api/insert';
+  var API_URL = 'https://landing-production-54c5.up.railway.app/api/insert';
 
   function insert(payload) {
     try {
