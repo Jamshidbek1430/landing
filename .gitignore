@@ -1,0 +1,5 @@
+node_modules
+.DS_Store
+landing.db
+leads.csv
+*.log

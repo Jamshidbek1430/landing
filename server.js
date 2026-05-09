@@ -23,14 +23,23 @@ console.log(`Port: ${PORT}`);
 console.log(`Database Directory: ${DB_DIR}`);
 console.log(`Database Path: ${DB_PATH}`);
 
-// Ensure directory exists
+// Ensure directory exists with better error reporting
 try {
+    console.log(`Checking directory: ${DB_DIR}`);
     if (!fs.existsSync(DB_DIR)) {
         console.log(`Creating directory: ${DB_DIR}`);
         fs.mkdirSync(DB_DIR, { recursive: true });
     }
+    // Test write permission
+    const testFile = path.join(DB_DIR, '.write_test');
+    fs.writeFileSync(testFile, 'test');
+    fs.unlinkSync(testFile);
+    console.log(`Write permission verified for: ${DB_DIR}`);
 } catch (e) {
-    console.error('FOLDER CREATION ERROR:', e.message);
+    console.error('FATAL PERMISSION ERROR:', e.message);
+    console.error('Falling back to local directory for database.');
+    // Fallback to local path if /data is not writable
+    process.env.DB_PATH = path.join(__dirname, 'landing.db');
 }
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
