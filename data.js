@@ -63,7 +63,12 @@ var DB = (function () {
   }
 
   function fetchAll() {
-    return fetchAllPages('click_events');
+    return fetch(URL + '/rest/v1/click_events?select=*&order=created_at.desc&limit=5000', {
+      headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
+    }).then(function (res) {
+      if (!res.ok) return res.text().then(function (t) { throw new Error('HTTP ' + res.status + ': ' + t); });
+      return res.json();
+    });
   }
 
   function fetchAllPhones() {
