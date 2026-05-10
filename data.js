@@ -1,34 +1,73 @@
 var DB = (function () {
-  var API_URL = 'https://landing-production-54c5.up.railway.app/api/insert';
+  var URL = 'https://grscubobuhzbhnfybrbu.supabase.co';
+  var KEY = 'sb_publishable_U9hiugSrQPaDM6SgSy7EBg_5VpydIrO';
+  var PAGE_SIZE = 1000;
+
+  var HEADERS = {
+    'Content-Type': 'application/json',
+    'apikey': KEY,
+    'Authorization': 'Bearer ' + KEY,
+    'Prefer': 'return=minimal'
+  };
 
   function insert(payload) {
     try {
-      fetch(API_URL, {
+      fetch(URL + '/rest/v1/click_events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table: 'click_events', data: payload }),
+        headers: HEADERS,
+        body: JSON.stringify(payload),
         keepalive: true
       }).catch(function () {});
     } catch (e) {}
   }
 
   function insertPhone(payload) {
-    return fetch(API_URL, {
+    return fetch(URL + '/rest/v1/phone_submissions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ table: 'phone_submissions', data: payload })
+      headers: Object.assign({}, HEADERS, { 'Prefer': 'resolution=ignore-duplicates,return=minimal' }),
+      body: JSON.stringify(payload)
     });
   }
 
-  // Data retrieval from the new backend
+  function fetchPage(table, offset) {
+    return fetch(URL + '/rest/v1/' + table + '?select=*&order=created_at.asc', {
+      headers: {
+        'apikey': KEY,
+        'Authorization': 'Bearer ' + KEY,
+        'Prefer': 'count=exact',
+        'Range-Unit': 'items',
+        'Range': offset + '-' + (offset + PAGE_SIZE - 1)
+      }
+    }).then(function (res) {
+      if (!res.ok) return res.text().then(function (t) { throw new Error('HTTP ' + res.status + ': ' + t); });
+      var cr = res.headers.get('Content-Range');
+      var total = cr ? parseInt(cr.split('/')[1], 10) : null;
+      return res.json().then(function (rows) { return { rows: rows, total: total }; });
+    });
+  }
+
+  function fetchAllPages(table) {
+    return fetchPage(table, 0).then(function (first) {
+      var all = first.rows;
+      var total = first.total || all.length;
+      if (all.length >= total) return all;
+      var pages = [];
+      for (var off = PAGE_SIZE; off < total; off += PAGE_SIZE) {
+        pages.push(fetchPage(table, off));
+      }
+      return Promise.all(pages).then(function (results) {
+        results.forEach(function (r) { all = all.concat(r.rows); });
+        return all;
+      });
+    });
+  }
+
   function fetchAll() {
-    return fetch(API_URL.replace('/insert', '/clicks'))
-      .then(res => res.json());
+    return fetchAllPages('click_events');
   }
 
   function fetchAllPhones() {
-    return fetch(API_URL.replace('/insert', '/phones'))
-      .then(res => res.json());
+    return fetchAllPages('phone_submissions');
   }
 
   return {

@@ -3,3 +3,4 @@ node_modules
 landing.db
 leads.csv
 *.log
+railway_backup.json

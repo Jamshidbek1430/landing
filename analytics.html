@@ -309,7 +309,15 @@ function downloadPhonesExcel() {
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Phone Submissions');
     var stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
-    XLSX.writeFile(wb, 'phone-submissions-' + stamp + '.xlsx');
+    var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    var blob = new Blob([wbout], { type: 'application/octet-stream' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'phone-submissions-' + stamp + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
   } catch (e) {
     alert('Export failed: ' + e.message);
   } finally {

@@ -93,9 +93,5 @@
       screen_height: window.screen.height
     });
 
-    // Fire Meta Pixel Lead event — click = going to Telegram = lead
-    if (typeof fbq === 'function') {
-      fbq('track', 'Lead');
-    }
   }, true);
 })();
